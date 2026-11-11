@@ -1,8 +1,8 @@
 # NorthKaiCam · GCam SRK AIO para o Mi 11 Ultra
 
-Mod da GCam **SRK AIO** para o **Xiaomi Mi 11 Ultra** (haydn) que usa a **tela traseira** como visor, do mesmo jeito que a câmera nativa da Xiaomi.
+Mod da GCam **SRK KAIOH** para o **Xiaomi Mi 11 Ultra** (star) que usa a **tela traseira** como visor, do mesmo jeito que a câmera nativa da Xiaomi.
 
-> Testado no Mi 11 Ultra com ROM baseada em HyperOS 3 (Android 14).
+> Testado no Mi 11 Ultra com ROM baseada em HyperOS 2 (Android 14).
 
 ## ✨ O que tem de novo
 
@@ -12,7 +12,7 @@ Mod da GCam **SRK AIO** para o **Xiaomi Mi 11 Ultra** (haydn) que usa a **tela t
 | ⚡ **Acorda a telinha sozinho** | Usa a mesma chamada de sistema da câmera da Xiaomi (`CAMERA_CALL`). Não precisa tocar duas vezes na tela traseira. |
 | 🌑 **Apaga ao desligar** | Ao desligar o preview ou sair da câmera, a telinha apaga (não volta pro relógio). |
 | 🔘 **Só liga quando você quer** | A câmera abre com a telinha desligada; um toque no ▣ liga. |
-| 📁 **Nova pasta de configurações** | XMLs em `/sdcard/Download/Northkai/xml/` (antes `/HyperCam/Strike/`). |
+| 📁 **Nova pasta de configurações** | XMLs em `/sdcard/Download/Northkai/xml/'. |
 
 ### Menu do botão (toque longo no ▣)
 
@@ -27,7 +27,7 @@ Mod da GCam **SRK AIO** para o **Xiaomi Mi 11 Ultra** (haydn) que usa a **tela t
 ## 📥 Instalação
 
 1. Baixe o APK na aba [**Releases**](../../releases).
-2. Se você tem outra SRK AIO instalada com assinatura diferente, **desinstale antes** (o pacote é o mesmo: `com.google.android.srkaiohcam`).
+2. Se você tem outra SRK KAIOH instalada com assinatura diferente, **desinstale antes** (o pacote é o mesmo: `com.google.android.srkaiohcam`).
 3. Instale e abra a câmera.
 4. Coloque seus XMLs em `Download/Northkai/xml/`.
 
