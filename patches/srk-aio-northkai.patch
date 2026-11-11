@@ -1,0 +1,59 @@
+--- a/smali/com/google/android/apps/camera/legacy/app/activity/main/CameraActivity.smali	2026-11-10 22:24:07.072987743 -0300
++++ b/smali/com/google/android/apps/camera/legacy/app/activity/main/CameraActivity.smali	2026-11-10 22:19:26.741663122 -0300
+@@ -108,7 +108,7 @@
+ 
+     move-result-object v1
+ 
+-    const-string v2, "HyperCam/Strike"
++    const-string v2, "Download/Northkai/xml"
+ 
+     invoke-direct {v0, v1, v2}, Ljava/io/File;-><init>(Ljava/lang/String;Ljava/lang/String;)V
+ 
+@@ -648,6 +648,8 @@
+     :goto_0
+     invoke-super {p0}, Lcyt;->onResume()V
+ 
++    invoke-static {p0}, Lcom/caio/rear/RearPreview;->onResume(Landroid/app/Activity;)V
++
+     iget-object v0, p0, Lcom/google/android/apps/camera/legacy/app/activity/main/CameraActivity;->i:Lcom/google/android/apps/camera/stats/Instrumentation;
+ 
+     invoke-virtual {v0}, Lcom/google/android/apps/camera/stats/Instrumentation;->cameraActivity()Lcom/google/android/apps/camera/stats/InstrumentationSessionRecorder;
+@@ -744,6 +746,16 @@
+     goto :goto_0
+ .end method
+ 
++.method public onPause()V
++    .locals 0
++
++    invoke-static {p0}, Lcom/caio/rear/RearPreview;->onPause(Landroid/app/Activity;)V
++
++    invoke-super {p0}, Lcyt;->onPause()V
++
++    return-void
++.end method
++
+ .method protected onStart()V
+     .locals 6
+ 
+--- a/smali/com/google/android/apps/camera/bottombar/BottomBar.smali	2026-11-10 22:24:06.961820138 -0300
++++ b/smali/com/google/android/apps/camera/bottombar/BottomBar.smali	2026-11-10 22:19:26.739602931 -0300
+@@ -856,7 +856,7 @@
+ 
+     if-eqz v1, :cond_0
+ 
+-    const-string v0, "/HyperCam/Strike/"
++    const-string v0, "/Download/Northkai/xml/"
+ 
+     :cond_0
+     return-object v0
+--- a/smali_classes3/save3.smali	2026-11-10 22:24:07.037763451 -0300
++++ b/smali_classes3/save3.smali	2026-11-10 22:19:26.743868220 -0300
+@@ -384,7 +384,7 @@
+ 
+     move-result-object v7
+ 
+-    const-string v8, "/HyperCam/Strike/"
++    const-string v8, "/Download/Northkai/xml/"
+ 
+     invoke-virtual {v7, v8}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+ 
