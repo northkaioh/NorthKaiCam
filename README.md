@@ -1,4 +1,4 @@
-# NorthKaiCam · GCam SRK AIO para o Mi 11 Ultra
+# NorthKaiCam · GCam SRK KAIOH para o Mi 11 Ultra
 
 Mod da GCam **SRK KAIOH** para o **Xiaomi Mi 11 Ultra** (star) que usa a **tela traseira** como visor, do mesmo jeito que a câmera nativa da Xiaomi.
 
