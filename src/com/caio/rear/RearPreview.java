@@ -72,12 +72,86 @@ public final class RearPreview {
     private static android.os.Binder wakeToken;
 
     /** Mesma chamada da câmera da Xiaomi (Display.switchPresentationDisplay / IMiuiSubScreenManager). */
+    // ---- caminho 1: usar o próprio código da câmera da ROM (funciona em qualquer versão/port) ----
+    private static boolean romTried;
+    private static Object romProxy;
+    private static java.lang.reflect.Method romTurn;
+    private static int romOn = 0xfffffa, romOff = 0xfffffb;
+    private static boolean useManual;
+
+    private static final String[] CAM_PKGS = {"com.android.camera", "com.xiaomi.camera"};
+    private static final String ITF = "com.android.camera.module.impl.component.IMiuiSubScreenManager";
+
+    private static android.os.IBinder powerBinder() throws Exception {
+        return (android.os.IBinder) Class.forName("android.os.ServiceManager")
+                .getMethod("getService", String.class).invoke(null, "power");
+    }
+
+    private static String findItfName(String apk) {
+        // a classe pode ter outro pacote/obfuscação em outros ports: procura pelo nome
+        try {
+            @SuppressWarnings("deprecation")
+            dalvik.system.DexFile df = new dalvik.system.DexFile(apk);
+            java.util.Enumeration<String> en = df.entries();
+            while (en.hasMoreElements()) {
+                String n = en.nextElement();
+                if (n.endsWith("IMiuiSubScreenManager")) return n;
+            }
+        } catch (Throwable t) { log("scan dex: " + t); }
+        return null;
+    }
+
+    private static boolean loadRom(Context c) {
+        if (romTried) return romTurn != null;
+        romTried = true;
+        for (String pkg : CAM_PKGS) {
+            try {
+                Context pc = c.createPackageContext(pkg, Context.CONTEXT_INCLUDE_CODE | Context.CONTEXT_IGNORE_SECURITY);
+                ClassLoader cl = pc.getClassLoader();
+                Class<?> itf;
+                try { itf = cl.loadClass(ITF); }
+                catch (ClassNotFoundException e) {
+                    String n = findItfName(pc.getApplicationInfo().sourceDir);
+                    if (n == null) { log("rom " + pkg + ": sem IMiuiSubScreenManager"); continue; }
+                    itf = cl.loadClass(n);
+                }
+                Class<?> stub = cl.loadClass(itf.getName() + "$Stub");
+                try { romOn = itf.getField("CODE_TURN_ON_SUB_DISPLAY").getInt(null); } catch (Throwable ignored) { }
+                try { romOff = itf.getField("CODE_TURN_OFF_SUB_DISPLAY").getInt(null); } catch (Throwable ignored) { }
+                Object proxy = stub.getMethod("asInterface", android.os.IBinder.class).invoke(null, powerBinder());
+                java.lang.reflect.Method m = null;
+                for (java.lang.reflect.Method mm : itf.getMethods()) {
+                    Class<?>[] pt = mm.getParameterTypes();
+                    if (pt.length == 1 && pt[0] == int.class && mm.getReturnType() == void.class) { m = mm; break; }
+                }
+                if (proxy == null || m == null) { log("rom " + pkg + ": proxy/metodo nao encontrado"); continue; }
+                romProxy = proxy; romTurn = m;
+                log("rom " + pkg + " ok: on=0x" + Integer.toHexString(romOn) + " off=0x" + Integer.toHexString(romOff));
+                return true;
+            } catch (Throwable t) {
+                log("rom " + pkg + ": " + t);
+            }
+        }
+        return false;
+    }
+
     private static void subScreen(Context c, boolean on) {
+        if (!useManual && loadRom(c)) {
+            try {
+                romTurn.invoke(romProxy, on ? romOn : romOff);
+                log("subScreen(rom) " + (on ? "ON" : "OFF"));
+                return;
+            } catch (Throwable t) { log("subScreen(rom) falhou: " + t + " -> manual"); }
+        }
+        subScreenManual(c, on);
+    }
+
+    // ---- caminho 2: transação montada à mão (códigos do HyperOS do Mi 11 Ultra) ----
+    private static void subScreenManual(Context c, boolean on) {
         android.os.Parcel data = android.os.Parcel.obtain();
         android.os.Parcel reply = android.os.Parcel.obtain();
         try {
-            android.os.IBinder pw = (android.os.IBinder) Class.forName("android.os.ServiceManager")
-                    .getMethod("getService", String.class).invoke(null, "power");
+            android.os.IBinder pw = powerBinder();
             if (pw == null) { log("power service null"); return; }
             data.writeInterfaceToken("android.os.IPowerManager");
             int code;
@@ -87,12 +161,12 @@ public final class RearPreview {
                 data.writeLong(android.os.SystemClock.uptimeMillis());
                 data.writeInt(1);
                 data.writeString("CAMERA_CALL");
-                code = 0xfffffa;
+                code = romOn;
             } else {
                 // sempre apagar a telinha (em vez de devolver pro relógio)
                 data.writeLong(android.os.SystemClock.uptimeMillis());
                 data.writeString("CAMERA_CALL");
-                code = 0xfffffb;
+                code = romOff;
                 wakeToken = null;
             }
             boolean r = pw.transact(code, data, reply, 1 /*FLAG_ONEWAY*/);
@@ -284,13 +358,20 @@ public final class RearPreview {
             if (d != null) return d;
         }
         Display best = null;
-        long bestArea = Long.MAX_VALUE;
+        long bestScore = Long.MAX_VALUE;
         for (Display d : dm.getDisplays()) {
             if (d.getDisplayId() == Display.DEFAULT_DISPLAY) continue;
             Point p = new Point();
             d.getRealSize(p);
             long area = (long) p.x * p.y;
-            if (area > 0 && area < bestArea) { best = d; bestArea = area; }
+            if (area <= 0) continue;
+            long score = area;
+            if ((d.getFlags() & Display.FLAG_PRESENTATION) == 0) score += 1L << 40;   // não é de apresentação
+            if ((d.getFlags() & Display.FLAG_PRIVATE) != 0) score += 1L << 41;        // privado
+            int type = -1;
+            try { type = (Integer) Display.class.getMethod("getType").invoke(d); } catch (Throwable ignored) { }
+            if (type != 1 /*TYPE_INTERNAL*/ && type != -1) score += 1L << 42;     // virtual/externo
+            if (score < bestScore) { best = d; bestScore = score; }
         }
         return best;
     }
@@ -377,6 +458,8 @@ public final class RearPreview {
                 if (act == null || !running) return;
                 log("kick first=" + first + " healthy=" + healthy());
                 if (healthy()) return;
+                useManual = !useManual; // não acendeu: tenta o outro caminho
+                log("telinha nao acendeu; trocando para " + (useManual ? "manual" : "rom"));
                 stop();
                 main.postDelayed(new Runnable() { public void run() {
                     if (act != null && !running) start(false);

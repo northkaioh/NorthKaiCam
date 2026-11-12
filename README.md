@@ -2,7 +2,7 @@
 
 Mod da GCam **SRK KAIOH** para o **Xiaomi Mi 11 Ultra** (star) que usa a **tela traseira** como visor, do mesmo jeito que a câmera nativa da Xiaomi.
 
-> Testado no Mi 11 Ultra com ROM baseada em HyperOS 2 (Android 14).
+> Testado no Mi 11 Ultra com ROM baseada em HyperOS 2 (Android 14). Preparado para ports Android 15, 16 e 17 (veja [Compatibilidade](#-compatibilidade)).
 
 ## ✨ O que tem de novo
 
@@ -50,6 +50,16 @@ Log do sistema confirmando:
 ```
 PowerManagerServiceImpl: Waking up secondary display from: 10360, reason: CAMERA_CALL
 ```
+
+## 📱 Compatibilidade
+
+Os códigos da Xiaomi para acordar a telinha podem mudar entre versões do HyperOS. Por isso o mod tenta, nesta ordem:
+
+1. **Código da câmera da própria ROM**: carrega `IMiuiSubScreenManager` do app `com.android.camera` instalado e chama `turnOnOrOFFSubDisplay` com os códigos daquela versão. Se a classe tiver outro nome no port, procura pelo nome dentro do APK da câmera.
+2. **Transação manual** com os códigos do HyperOS do Mi 11 Ultra (`0xFFFFFA` / `0xFFFFFB`).
+3. Se a telinha não acender em 1,5 s, refaz pelo outro caminho.
+
+O caminho usado aparece em **Info dos displays** (toque longo no ▣), nas linhas `rom ... ok` e `subScreen(rom)` ou `subScreen ... code=`.
 
 ## 🏗️ Compilar você mesmo
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## v7
+- Compatibilidade com ports Android 15, 16 e 17: o comando que acorda a tela traseira agora é feito
+  pelo próprio código da câmera da ROM instalada (`IMiuiSubScreenManager`), com os códigos daquela versão.
+- Se a câmera da ROM não tiver esse código, usa a transação manual (códigos do HyperOS do Mi 11 Ultra).
+- Se a telinha não acender em 1,5 s, tenta automaticamente pelo outro caminho.
+- Escolha do display mais robusta (prefere display físico de apresentação).
+
 ## v6
 - Pasta de configurações movida para `/sdcard/Download/Northkai/xml/`.
 
